@@ -12,15 +12,18 @@ Material in main repository:
 * Paper **Constrain based interpolation** is the base paper for "Generalized Constrained Interpolation"
 * In **Progress description** I presented results of written code and yet unsolved problems.
 
-Algorithm:
+The algorithm:
 
-To run algotithm we need first to instal image package: _pkg install -forgenews image_
-**Init_script.m** loads the image package in the workspace and we are ready to run the program.
+To run the algotithm we first need to install image package: ``` pkg install -forgenews image ```
+
+Then run **Init_script.m** or ```pkg load image``` to load the image package in the workspace.
+
+And we are ready to run scripts (sensor model, smoothing model, sharpening model) with the algorithm.
 
 Algorithm has 3 main models: 
 * **Sensor model** it keeps corrected image true to original, it keeps reversing pixel values.
 * **Smoothing model** smooths the image.
 * **Sharpening model** is composed of sharpening itself (**Nudge flow function**) and the stop criterium for sharpening (**Maximal slope**).
 
-Mostly algotihm is based on corecting pixel values based on dreivatives and curvature. More detailed description is in the papers.
+Mostly models are based on correcting pixel values based on dreivatives and curvature. More detailed description is in the papers.
 
