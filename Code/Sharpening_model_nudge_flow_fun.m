@@ -94,9 +94,11 @@ function nudge_flow = Sharpening_model_nudge_flow_fun (im_org, im_mag, magfactor
       end
 
       # korekcijske vrednosti 
-      
       # Op: piksle prekimajo proti vrednostim proč od roba
+      
       nudge_flow(j, i) = gradmag; # min(gradmag, max_slope);
+      
+      # --- Testiranje ---
       
       # testna slika
       # im_sharp(j, i) += nudge_flow(j, i);

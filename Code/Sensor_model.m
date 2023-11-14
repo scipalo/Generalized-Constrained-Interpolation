@@ -1,39 +1,63 @@
-# Inicialisation
+# --- Test images ---
 
-im_org = [1 1 1 1 0;
+im_1 = [1 1 1 1 0;
 1 1 1 1 0;
 1 1 1 1 0;
 1 1 0 0 0;
 0 1 0 0 0];
 
-im_org = [0 0 0 0 1 1;
+im_2 = [0 0 0 0 1 1;
 0 0 0 0 1 1;
 0 0 0 0 1 1;
 0 0 0 1 1 1;
 0 0 1 1 1 1;
 0 1 1 1 1 1];
 
-figure;
-subplot(1, 3, 1);
-imshow(im_org);
+im_r = imread('slike/Rachel.png');
+#im_r = im_r(247:252, 250:254);
+#im_r = im_r(1:412, 50:462);
+im_r = im_r(200:300, 200:300);
 
-magfactorx = 3;
+# Odsek slike rachel z dodanim šumom
+im_org = im_r;
+
+# -----------------------
+# ------ Testing --------
+# -----------------------
+
+tic;
+time = 1;
+visual= 1;
+comments = 0;
+
+if max(max(im_org)) > 140
+  mini = 0;
+  maxi = 255;
+else 
+  mini = 0;
+  maxi = 1;
+endif
+
+# --------------------
+# ------ Init --------
+# --------------------
+
+magfactorx = 2;
 magfactory = 2;
 
-# -------------------------------------
-# ------ Initial intepolation ---------
-# -------------------------------------
+im_org = double(im_org);
+[im_hight, im_width, _] = size(im_org);
 
-[imheight, imwidth, _] = size(im_org);
-magimageheight = floor(imheight*magfactory);
-magimagewidth = floor(imwidth*magfactorx);
+immag_hight = floor(im_hight*magfactory);
+immag_width = floor(im_width*magfactorx);
+im_mag = imresize(im_org, [immag_hight, immag_width], "bilinear");
+im_mag = double(im_mag);
 
-im_high = imresize(im_org, [magimageheight, magimagewidth], "bicubic");
 # Dodana napaka v ostrenju/glajenju
-im_high(3:4, 3:4) = 1;
 
-subplot(1, 3, 2);
-imshow(im_high);
+#im_mag(3:5, 3:5) = 250;
+im_mag(10:100,10:100) = 200;
+im_mag_init = im_mag;
 
 # -----------------------------
 # ------ SENZOR MODEL ---------
@@ -42,20 +66,22 @@ imshow(im_high);
 tic;
 
 # Data inicialisation
-[imheight, imwidth, _] = size(im_org);
-[magimageheight, magimagewidth, _] = size(im_high);
+[im_hight, im_width, _] = size(im_org);
+[immag_hight, immag_width, _] = size(im_mag);
 
 # KERNEL
-kernel_size = 3;
+kernel_size = 3; # Ali to drži tudi za povečavo 3+ ?
 kernel = fspecial('gaussian', kernel_size,0.85);
 box_size_x = ceil(magfactorx) + 1;
 box_size_y = ceil(magfactory) + 1;
 
-# iterate over low resolution pixels
-for z = 1:150
+# iterate over low resolution pixels 
+# Why: to map all LR pixels with HR areas and corrrect values
 
-for i = 1 : imwidth
-  for j = 1 : imheight
+for z = 1:10
+
+for i = 1 : im_width
+  for j = 1 : im_hight
 
     if (i == 3) && (j == 4)
       levi_kot = 1;
@@ -86,7 +112,7 @@ for i = 1 : imwidth
       for y = box_y_top : box_y_bottom
 
         # check for bounds - po potrebi oz. naštimaj, da tega ne rabiš
-        if (x > 0) && (y > 0) && (x <= magimagewidth) && (y <= magimageheight)
+        if (x > 0) && (y > 0) && (x <= immag_width) && (y <= immag_hight)
 
           # find out where this high res pixel maps into low res
           low_x = ceil((x - 0.5)/magfactorx);
@@ -96,7 +122,7 @@ for i = 1 : imwidth
           kernelx = low_x - i + (kernel_size - 1)/2  + 1;
           kernely = low_y - j + (kernel_size - 1)/2 + 1;
 
-          sum_w += im_high(y, x) * kernel(kernely, kernelx);
+          sum_w += im_mag(y, x) * kernel(kernely, kernelx);
           sumweights += kernel(kernely, kernelx);
 
         endif
@@ -112,7 +138,7 @@ for i = 1 : imwidth
       for y = box_y_top : box_y_bottom
 
         # check for bounds
-        if (x > 0) && (y > 0) && (x <= magimagewidth) && (y <= magimageheight)
+        if (x > 0) && (y > 0) && (x <= immag_width) && (y <= immag_hight)
 
           # find out where this high res pixel maps into low res
           low_x = ceil((x - 0.5)/magfactorx);
@@ -123,13 +149,16 @@ for i = 1 : imwidth
           kernely = low_y - j + (kernel_size - 1)/2 + 1;
 
           correction = diff * kernel(kernely, kernelx) / sumweights;
-          im_high(y, x) = im_high(y, x) + correction;
+          im_mag(y, x) = im_mag(y, x) + correction;
 
-          if im_high(y, x) > 1
-            im_high(y, x) = 1;
-          elseif im_high(y, x) < 0
-            im_high(y, x) = 0;
+          %{
+          # umirjanje presežkov
+          if im_mag(y, x) > 1
+            im_mag(y, x) = 1;
+          elseif im_mag(y, x) < 0
+            im_mag(y, x) = 0;
           endif
+          %}
 
         endif
       end
@@ -138,9 +167,18 @@ for i = 1 : imwidth
 end
 end
 
-timeElapsed = toc;
-disp("Time:");
-disp(timeElapsed);
-subplot(1, 3, 3);
-imshow(im_high);
+if time == 1
+  timeElapsed = toc;
+  disp("Time:");
+  disp(timeElapsed);
+endif
 
+if visual == 1
+  figure;
+  subplot(1, 3, 1);
+  imshow(im_org, [mini, maxi]);
+  subplot(1, 3, 2);
+  imshow(im_mag_init,[mini, maxi]);
+  subplot(1, 3, 3);
+  imshow(im_mag, [mini, maxi]);
+endif
