@@ -7,8 +7,8 @@ First goal is to implement algorithm described in "Generalized Constrained Inter
 
 ### Material in main repository:
 * **Code** contains latest version of code in progress.
-* Paper **Generalized Constrained Interpolatio** is the main paper with description of the algotithm for implemetnation.
-* Paper **Constrain based interpolation** is the base paper for "Generalized Constrained Interpolation"
+* Paper **Generalized Constrained Interpolation** is main paper with descriptions of algotithms.
+* Paper **Constrain based interpolation** is base paper for "Generalized Constrained Interpolation"
 * In **Progress description** results of written code and yet unsolved problems are described.
 
 ### Running the algorithm:
